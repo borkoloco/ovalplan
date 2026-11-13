@@ -14,10 +14,10 @@ import {
   TrashIcon,
 } from '../components/icons'
 import { IconButton, btnSecondary } from '../components/ui'
-import { EXERCISES_BY_ID } from '../data/exercises'
 import type { BlockType, Exercise, Session, SessionBlock } from '../data/types'
 import { useLang } from '../i18n'
-import { categoryLabel, formatDate, sessionMinutes, sessionToText } from '../lib/format'
+import { useExercises } from '../lib/exercises'
+import { categoryLabel, formatDate, sessionMinutes, sessionToText, tx } from '../lib/format'
 import { buildBlocks, newId, rankForBlock } from '../lib/generateSession'
 import { deleteSession, getSession, saveSession } from '../lib/storage'
 
@@ -42,6 +42,7 @@ function SessionEditor({ initial }: { initial: Session }) {
   const { t } = useTranslation()
   const lang = useLang()
   const navigate = useNavigate()
+  const { usable, byId } = useExercises()
   const [session, setSession] = useState(initial)
   const [picker, setPicker] = useState<BlockType | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -72,7 +73,7 @@ function SessionEditor({ initial }: { initial: Session }) {
     })
 
   const swap = (type: BlockType, uid: string) => {
-    const alt = rankForBlock(type, session.input, { exclude: usedIds() })[0]
+    const alt = rankForBlock(usable, type, session.input, { exclude: usedIds() })[0]
     if (!alt) return setToast(t('session.noAlternatives'))
     updateItems(type, (items) => items.map((i) => (i.uid === uid ? { ...i, exerciseId: alt.id } : i)))
   }
@@ -86,7 +87,7 @@ function SessionEditor({ initial }: { initial: Session }) {
 
   const regenerate = () => {
     if (!confirm(t('session.regenerateConfirm'))) return
-    setSession((s) => ({ ...s, blocks: buildBlocks(s.input) }))
+    setSession((s) => ({ ...s, blocks: buildBlocks(usable, s.input) }))
   }
 
   const remove = () => {
@@ -96,7 +97,7 @@ function SessionEditor({ initial }: { initial: Session }) {
   }
 
   const share = async () => {
-    const text = sessionToText(session, t, lang)
+    const text = sessionToText(session, byId, t, lang)
     try {
       if (navigator.share) {
         await navigator.share({ title: 'OvalPlan', text })
@@ -166,14 +167,14 @@ function SessionEditor({ initial }: { initial: Session }) {
                 <li className="px-4 py-4 text-sm text-slate-500">{t('session.emptyBlock')}</li>
               )}
               {block.items.map((item, i) => {
-                const ex = EXERCISES_BY_ID[item.exerciseId]
+                const ex = byId[item.exerciseId]
                 if (!ex) return null
                 return (
                   <li key={item.uid} className="space-y-2 px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
                       <Link to={`/library/${ex.id}`} className="min-w-0">
-                        <div className="font-medium underline-offset-2 hover:underline">{ex.name[lang]}</div>
-                        <p className="line-clamp-2 text-sm text-slate-600">{ex.summary[lang]}</p>
+                        <div className="font-medium underline-offset-2 hover:underline">{tx(ex.name, lang)}</div>
+                        <p className="line-clamp-2 text-sm text-slate-600">{tx(ex.summary, lang)}</p>
                       </Link>
                       {/* Minutos */}
                       <div className="flex shrink-0 items-center rounded-lg border border-slate-200">
@@ -250,7 +251,7 @@ function SessionEditor({ initial }: { initial: Session }) {
       {picker && (
         <ExercisePicker
           block={picker}
-          options={rankForBlock(picker, input, { exclude: usedIds() })}
+          options={rankForBlock(usable, picker, input, { exclude: usedIds() })}
           onPick={(ex) => addExercise(picker, ex)}
           onClose={closePicker}
         />

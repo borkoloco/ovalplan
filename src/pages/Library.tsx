@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import ExerciseTags from '../components/ExerciseTags'
-import { ChipGroup } from '../components/ui'
+import { PlusIcon } from '../components/icons'
+import { ChipGroup, btnPrimary } from '../components/ui'
 import { CATEGORIES, categoryAge } from '../data/categories'
-import { EXERCISES } from '../data/exercises'
 import { TOPICS, type Topic } from '../data/types'
 import { useLang } from '../i18n'
-import { categoryLabel } from '../lib/format'
+import { useAuth } from '../lib/auth'
+import { useExercises } from '../lib/exercises'
+import { categoryLabel, tx } from '../lib/format'
 
 const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 
@@ -17,20 +19,34 @@ export default function Library() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [topics, setTopics] = useState<Topic[]>([])
+  const [params, setParams] = useSearchParams()
+  const onlyMine = params.get('mine') === '1'
+  const { all } = useExercises()
+  const { user, enabled } = useAuth()
 
   const results = useMemo(() => {
     const q = normalize(query.trim())
-    return EXERCISES.filter(
+    return all.filter(
       (ex) =>
-        (!q || normalize(`${ex.name[lang]} ${ex.summary[lang]}`).includes(q)) &&
+        // aprobados para todos; los pendientes o rechazados, sólo a su autor
+        (!ex.status || ex.status === 'approved' || ex.createdBy === user?.id) &&
+        (!onlyMine || (user && ex.createdBy === user.id)) &&
+        (!q || normalize(`${tx(ex.name, lang)} ${tx(ex.summary, lang)}`).includes(q)) &&
         (!category || categoryAge(category) >= ex.minAge) &&
         (topics.length === 0 || topics.some((tp) => ex.topics.includes(tp))),
     )
-  }, [query, category, topics, lang])
+  }, [all, user, onlyMine, query, category, topics, lang])
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight">{t('library.title')}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">{t('library.title')}</h1>
+        {enabled && (
+          <Link to="/exercises/new" className={`${btnPrimary} shrink-0 !px-3 !py-2 !text-sm`}>
+            <PlusIcon width={18} height={18} /> {t('library.newExercise')}
+          </Link>
+        )}
+      </div>
 
       <div className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -59,6 +75,17 @@ export default function Library() {
           selected={topics}
           onChange={setTopics}
         />
+        {user && (
+          <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={onlyMine}
+              onChange={(e) => setParams(e.target.checked ? { mine: '1' } : {}, { replace: true })}
+              className="size-4 accent-emerald-700"
+            />
+            {t('library.onlyMine')}
+          </label>
+        )}
       </div>
 
       <p className="text-sm text-slate-500">{t('library.count', { count: results.length })}</p>
@@ -74,10 +101,10 @@ export default function Library() {
                 className="flex h-full flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:shadow-sm"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <h2 className="font-semibold">{ex.name[lang]}</h2>
+                  <h2 className="font-semibold">{tx(ex.name, lang)}</h2>
                   <span className="shrink-0 text-xs text-slate-500">{ex.duration} {t('common.min')}</span>
                 </div>
-                <p className="flex-1 text-sm text-slate-600">{ex.summary[lang]}</p>
+                <p className="flex-1 text-sm text-slate-600">{tx(ex.summary, lang)}</p>
                 <ExerciseTags ex={ex} />
               </Link>
             </li>

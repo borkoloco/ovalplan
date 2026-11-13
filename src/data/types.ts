@@ -1,5 +1,5 @@
-/** Texto en los dos idiomas de la app. */
-export type Localized = { es: string; en: string }
+/** Texto en uno o los dos idiomas de la app (ver `tx` en lib/format). */
+export type Localized = { es?: string; en?: string }
 
 export const TOPICS = [
   'passing',
@@ -43,7 +43,13 @@ export type Exercise = {
   contact: ContactLevel
   /** Enlace a un video público (YouTube, etc.). No se descargan videos ajenos. */
   videoUrl?: string
+  /** Sólo en ejercicios de la base: los cargados por entrenadores se revisan antes de aprobarse. */
+  status?: ExerciseStatus
+  createdBy?: string | null
+  reviewNote?: string | null
 }
+
+export type ExerciseStatus = 'pending' | 'approved' | 'rejected'
 
 export type Focus = 'games' | 'balanced' | 'drills'
 

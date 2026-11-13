@@ -57,6 +57,9 @@ export const CheckIcon = (p: P) => (
 export const XIcon = (p: P) => (
   <svg {...base(p)}><path d="M18 6 6 18M6 6l12 12" /></svg>
 )
+export const UserIcon = (p: P) => (
+  <svg {...base(p)}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+)
 export const PlayIcon = (p: P) => (
   <svg {...base(p)}><circle cx="12" cy="12" r="10" /><path d="m10 8 6 4-6 4z" /></svg>
 )

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BlockType, Exercise } from '../data/types'
 import { useLang } from '../i18n'
+import { tx } from '../lib/format'
 import ExerciseTags from './ExerciseTags'
 import { XIcon } from './icons'
 
@@ -56,10 +57,10 @@ export default function ExercisePicker({
                 className="w-full space-y-1.5 rounded-xl p-3 text-left hover:bg-slate-50"
               >
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-medium">{ex.name[lang]}</span>
+                  <span className="font-medium">{tx(ex.name, lang)}</span>
                   <span className="shrink-0 text-xs text-slate-500">{ex.duration} {t('common.min')}</span>
                 </div>
-                <p className="text-sm text-slate-600">{ex.summary[lang]}</p>
+                <p className="text-sm text-slate-600">{tx(ex.summary, lang)}</p>
                 <ExerciseTags ex={ex} />
               </button>
             </li>
