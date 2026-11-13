@@ -1,20 +1,25 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ExerciseTags from '../components/ExerciseTags'
-import { ChevronLeftIcon, PlayIcon } from '../components/icons'
+import { ChevronLeftIcon, PlayIcon, TrashIcon } from '../components/icons'
 import { btnSecondary } from '../components/ui'
-import { EXERCISES_BY_ID } from '../data/exercises'
 import { useLang } from '../i18n'
+import { useAuth } from '../lib/auth'
+import { useExercises } from '../lib/exercises'
+import { tx } from '../lib/format'
 
 export default function ExerciseDetail() {
   const { id = '' } = useParams()
   const { t } = useTranslation()
   const lang = useLang()
   const navigate = useNavigate()
-  const ex = EXERCISES_BY_ID[id]
+  const { byId, loading, remove } = useExercises()
+  const { user, isAdmin } = useAuth()
+  const ex = byId[id]
 
   const back = () => (window.history.length > 1 ? navigate(-1) : navigate('/library'))
 
+  if (!ex && loading) return null
   if (!ex) {
     return (
       <div className="mx-auto max-w-3xl space-y-4 text-center">
@@ -24,6 +29,16 @@ export default function ExerciseDetail() {
     )
   }
 
+  const isOwner = Boolean(user && ex.createdBy === user.id)
+  const canEdit = isAdmin || (isOwner && ex.status !== 'approved')
+
+  const onDelete = async () => {
+    if (!confirm(t('exercise.deleteConfirm'))) return
+    const res = await remove(ex.id)
+    if (res.error) alert(res.error)
+    else navigate('/library', { replace: true })
+  }
+
   return (
     <article className="mx-auto max-w-3xl space-y-5">
       <button type="button" onClick={back} className="-ml-1 inline-flex items-center gap-1 text-sm font-medium text-slate-600">
@@ -31,12 +46,25 @@ export default function ExerciseDetail() {
       </button>
 
       <header className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{ex.name[lang]}</h1>
-        <p className="text-slate-700">{ex.summary[lang]}</p>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{tx(ex.name, lang)}</h1>
+        <p className="text-slate-700">{tx(ex.summary, lang)}</p>
         <ExerciseTags ex={ex} />
         <p className="text-sm text-slate-500">
           {ex.duration} {t('common.min')} · {t('exercise.minPlayers', { count: ex.minPlayers })}
         </p>
+        {ex.reviewNote && (isOwner || isAdmin) && (
+          <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+            <span className="font-semibold">{t('exercise.reviewNote')}:</span> {ex.reviewNote}
+          </p>
+        )}
+        {canEdit && (
+          <div className="flex gap-2">
+            <Link to={`/exercises/${ex.id}/edit`} className={btnSecondary}>{t('exercise.edit')}</Link>
+            <button type="button" onClick={onDelete} className={`${btnSecondary} !text-red-600`}>
+              <TrashIcon width={16} height={16} /> {t('common.delete')}
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Video o diagrama */}
@@ -56,7 +84,7 @@ export default function ExerciseDetail() {
           {ex.steps.map((step, i) => (
             <li key={i} className="flex gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-200">
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-700 text-xs font-bold text-white">{i + 1}</span>
-              <span className="text-slate-700">{step[lang]}</span>
+              <span className="text-slate-700">{tx(step, lang)}</span>
             </li>
           ))}
         </ol>

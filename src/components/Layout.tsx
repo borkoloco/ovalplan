@@ -2,12 +2,14 @@ import type { ComponentType, SVGProps } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import LanguageToggle from './LanguageToggle'
-import { BookIcon, HomeIcon, Logo, PlusIcon } from './icons'
+import { useAuth } from '../lib/auth'
+import { BookIcon, HomeIcon, Logo, PlusIcon, UserIcon } from './icons'
 
 type NavItem = { to: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>>; end?: boolean }
 
 export default function Layout() {
   const { t } = useTranslation()
+  const { user, enabled } = useAuth()
   const items: NavItem[] = [
     { to: '/', label: t('nav.home'), Icon: HomeIcon, end: true },
     { to: '/plan', label: t('nav.newSession'), Icon: PlusIcon },
@@ -41,8 +43,26 @@ export default function Layout() {
             ))}
           </nav>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <LanguageToggle />
+            {enabled && (
+              <NavLink
+                to="/account"
+                aria-label={t('nav.account')}
+                title={user?.email ?? t('auth.signIn')}
+                className={({ isActive }) =>
+                  `grid size-9 place-items-center rounded-full transition ${
+                    user ? 'bg-emerald-700 text-white' : isActive ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:bg-slate-100'
+                  }`
+                }
+              >
+                {user?.email ? (
+                  <span className="text-sm font-bold uppercase">{user.email[0]}</span>
+                ) : (
+                  <UserIcon />
+                )}
+              </NavLink>
+            )}
           </div>
         </div>
       </header>

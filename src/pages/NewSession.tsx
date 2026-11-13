@@ -7,6 +7,7 @@ import { CATEGORIES } from '../data/categories'
 import { EQUIPMENT, TOPICS, type Focus, type SessionInput } from '../data/types'
 import { categoryLabel, todayISO } from '../lib/format'
 import { createSession } from '../lib/generateSession'
+import { useExercises } from '../lib/exercises'
 import { getLastInput, saveLastInput, saveSession } from '../lib/storage'
 
 const DURATIONS = [60, 75, 90, 120]
@@ -27,6 +28,7 @@ function initialInput(): SessionInput {
 export default function NewSession() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { usable } = useExercises()
   const [input, setInput] = useState<SessionInput>(initialInput)
   const set = <K extends keyof SessionInput>(key: K, value: SessionInput[K]) =>
     setInput((prev) => ({ ...prev, [key]: value }))
@@ -35,7 +37,7 @@ export default function NewSession() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    const session = createSession(input)
+    const session = createSession(usable, input)
     saveSession(session)
     saveLastInput(input)
     navigate(`/session/${session.id}`)

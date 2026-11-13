@@ -10,6 +10,8 @@ export default function ExerciseTags({ ex, showTopics = true }: { ex: Exercise; 
   const { t } = useTranslation()
   return (
     <div className="flex flex-wrap gap-1.5">
+      {ex.status === 'pending' && <Tag tone="amber">{t('status.pending')}</Tag>}
+      {ex.status === 'rejected' && <Tag tone="red">{t('status.rejected')}</Tag>}
       <Tag>{t(`kind.${ex.kind}`)}</Tag>
       <Tag>{t('exercise.fromCategory', { cat: categoryLabel(categoryForMinAge(ex.minAge).id, t) })}</Tag>
       <Tag tone={contactTone[ex.contact]}>{t(`contact.${ex.contact}`)}</Tag>

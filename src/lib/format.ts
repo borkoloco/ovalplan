@@ -1,7 +1,12 @@
 import type { TFunction } from 'i18next'
-import { EXERCISES_BY_ID } from '../data/exercises'
-import type { Session } from '../data/types'
+import type { Exercise, Localized, Session } from '../data/types'
 import type { Lang } from '../i18n'
+
+/** Texto en el idioma actual, o en el otro si falta la traducción. */
+export function tx(text: Localized | undefined, lang: Lang): string {
+  if (!text) return ''
+  return text[lang] || text[lang === 'es' ? 'en' : 'es'] || ''
+}
 
 export function formatDate(date: string, lang: Lang, opts?: Intl.DateTimeFormatOptions) {
   // Fecha local (YYYY-MM-DD) sin corrimiento por zona horaria.
@@ -29,7 +34,12 @@ export function sessionMinutes(session: Session) {
 }
 
 /** Texto plano de la sesión para mandar por WhatsApp o copiar. */
-export function sessionToText(session: Session, t: TFunction, lang: Lang) {
+export function sessionToText(
+  session: Session,
+  byId: Record<string, Exercise>,
+  t: TFunction,
+  lang: Lang,
+) {
   const { input } = session
   const lines = [
     `OvalPlan · ${categoryLabel(input.category, t)} · ${input.players} ${t('common.players')} · ${sessionMinutes(session)} ${t('common.min')}`,
@@ -40,8 +50,8 @@ export function sessionToText(session: Session, t: TFunction, lang: Lang) {
     const mins = block.items.reduce((s, i) => s + i.minutes, 0)
     lines.push('', `${t(`blocks.${block.type}`)} (${mins} ${t('common.min')})`)
     for (const item of block.items) {
-      const ex = EXERCISES_BY_ID[item.exerciseId]
-      if (ex) lines.push(`• ${ex.name[lang]} · ${item.minutes} ${t('common.min')}`)
+      const ex = byId[item.exerciseId]
+      if (ex) lines.push(`• ${tx(ex.name, lang)} · ${item.minutes} ${t('common.min')}`)
     }
   }
   if (session.notes.trim()) lines.push('', session.notes.trim())
