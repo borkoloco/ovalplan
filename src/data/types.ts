@@ -1,3 +1,5 @@
+import type { Diagram } from './diagram'
+
 /** Texto en uno o los dos idiomas de la app (ver `tx` en lib/format). */
 export type Localized = { es?: string; en?: string }
 
@@ -43,6 +45,8 @@ export type Exercise = {
   contact: ContactLevel
   /** Enlace a un video público (YouTube, etc.). No se descargan videos ajenos. */
   videoUrl?: string
+  /** Diagrama de la cancha (animable). */
+  diagram?: Diagram
   /** Sólo en ejercicios de la base: los cargados por entrenadores se revisan antes de aprobarse. */
   status?: ExerciseStatus
   createdBy?: string | null

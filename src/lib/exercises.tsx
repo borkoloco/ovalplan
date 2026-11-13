@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { sanitizeDiagram } from '../data/diagram'
 import { EXERCISES } from '../data/exercises'
 import type { Exercise, ExerciseStatus } from '../data/types'
 import { useAuth } from './auth'
@@ -26,6 +27,7 @@ type Row = {
   equipment: Exercise['equipment']
   contact: Exercise['contact']
   video_url: string | null
+  diagram: unknown
   status: ExerciseStatus
   review_note: string | null
   created_by: string | null
@@ -45,6 +47,7 @@ const fromRow = (r: Row): Exercise => ({
   equipment: r.equipment,
   contact: r.contact,
   videoUrl: r.video_url ?? undefined,
+  diagram: sanitizeDiagram(r.diagram),
   status: r.status,
   reviewNote: r.review_note,
   createdBy: r.created_by,
@@ -66,6 +69,7 @@ const toRow = (e: ExerciseInput) => ({
   equipment: e.equipment,
   contact: e.contact,
   video_url: e.videoUrl || null,
+  diagram: e.diagram ? sanitizeDiagram(e.diagram) : null,
 })
 
 function readCache(): Exercise[] | null {

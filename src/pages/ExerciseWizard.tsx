@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import ExerciseTags from '../components/ExerciseTags'
+import DiagramEditor from '../components/diagram/DiagramEditor'
+import FieldDiagram from '../components/diagram/FieldDiagram'
+import type { Diagram } from '../data/diagram'
 import { MinusIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { ChipGroup, Field, Segmented, btnPrimary, btnSecondary } from '../components/ui'
 import { CATEGORIES, categoryForMinAge } from '../data/categories'
@@ -35,6 +38,7 @@ type Draft = {
   steps: string[]
   videoUrl: string
   equipment: Equipment[]
+  diagram?: Diagram
 }
 
 const EMPTY: Draft = {
@@ -53,7 +57,7 @@ const EMPTY: Draft = {
 }
 
 const DRAFT_KEY = 'ovalplan.exerciseDraft'
-const STEP_KEYS = ['what', 'who', 'how', 'review'] as const
+const STEP_KEYS = ['what', 'who', 'how', 'diagram', 'review'] as const
 const MAX_STEPS = 6
 
 function fromExercise(ex: Exercise, lang: Lang): Draft {
@@ -70,6 +74,7 @@ function fromExercise(ex: Exercise, lang: Lang): Draft {
     steps: ex.steps.length ? ex.steps.map((s) => tx(s, lang)) : [''],
     videoUrl: ex.videoUrl ?? '',
     equipment: ex.equipment,
+    diagram: ex.diagram,
   }
 }
 
@@ -89,6 +94,7 @@ function toInput(d: Draft, lang: Lang): ExerciseInput {
     equipment: d.equipment,
     contact: d.contact,
     videoUrl: d.videoUrl.trim() || undefined,
+    diagram: d.diagram,
   }
 }
 
@@ -208,7 +214,7 @@ function Wizard({ existing, initial }: { existing?: Exercise; initial: Draft }) 
         </p>
         <h1 className="text-2xl font-bold tracking-tight">{existing ? t('wizard.titleEdit') : t('wizard.titleNew')}</h1>
         {/* Barra de progreso */}
-        <div className="mt-3 grid grid-cols-4 gap-1.5" aria-hidden>
+        <div className="mt-3 grid grid-cols-5 gap-1.5" aria-hidden>
           {STEP_KEYS.map((k, i) => (
             <div key={k} className={`h-1.5 rounded-full ${i <= step ? 'bg-emerald-600' : 'bg-slate-200'}`} />
           ))}
@@ -357,6 +363,13 @@ function Wizard({ existing, initial }: { existing?: Exercise; initial: Draft }) 
 
         {step === 3 && (
           <>
+            <p className="text-sm text-slate-600">{t('wizard.diagramHint')}</p>
+            <DiagramEditor value={d.diagram} onChange={(v) => set('diagram', v)} />
+          </>
+        )}
+
+        {step === 4 && (
+          <>
             <Field label={t('wizard.equipment')}>
               <ChipGroup
                 label={t('wizard.equipment')}
@@ -374,6 +387,7 @@ function Wizard({ existing, initial }: { existing?: Exercise; initial: Draft }) 
                 </div>
                 <p className="text-sm text-slate-600">{d.summary}</p>
                 <ExerciseTags ex={preview} />
+                {d.diagram && <FieldDiagram key={JSON.stringify(d.diagram)} diagram={d.diagram} compact />}
                 <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-700">
                   {d.steps.filter((s) => s.trim()).map((s, i) => <li key={i}>{s}</li>)}
                 </ol>
