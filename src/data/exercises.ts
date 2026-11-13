@@ -1,3 +1,4 @@
+import { DIAGRAMS } from './diagrams'
 import type { Exercise } from './types'
 
 /**
@@ -5,7 +6,7 @@ import type { Exercise } from './types'
  * Las edades mínimas (minAge) y los niveles de contacto son provisorios:
  * hay que validarlos con Juan y con las guías de la UAR y World Rugby.
  */
-export const EXERCISES: Exercise[] = [
+const BASE: Exercise[] = [
   // ── Entrada en calor ─────────────────────────────────────────────
   {
     id: 'ball-tag',
@@ -476,6 +477,8 @@ export const EXERCISES: Exercise[] = [
     contact: 'none',
   },
 ]
+
+export const EXERCISES: Exercise[] = BASE.map((e) => (DIAGRAMS[e.id] ? { ...e, diagram: DIAGRAMS[e.id] } : e))
 
 export const EXERCISES_BY_ID: Record<string, Exercise> = Object.fromEntries(
   EXERCISES.map((e) => [e.id, e]),

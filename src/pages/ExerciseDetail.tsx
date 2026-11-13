@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ExerciseTags from '../components/ExerciseTags'
+import FieldDiagram from '../components/diagram/FieldDiagram'
 import { ChevronLeftIcon, PlayIcon, TrashIcon } from '../components/icons'
 import { btnSecondary } from '../components/ui'
 import { useLang } from '../i18n'
@@ -67,15 +68,18 @@ export default function ExerciseDetail() {
         )}
       </header>
 
-      {/* Video o diagrama */}
-      {ex.videoUrl ? (
+      {/* Diagrama */}
+      {ex.diagram ? (
+        <FieldDiagram diagram={ex.diagram} title={`${t('diagram.title')}: ${tx(ex.name, lang)}`} />
+      ) : (
+        <div className="grid aspect-video place-items-center rounded-2xl border border-dashed border-slate-300 bg-[repeating-linear-gradient(90deg,#ecfdf5_0,#ecfdf5_40px,#d1fae5_40px,#d1fae5_80px)] p-4 text-center text-sm text-emerald-900/70">
+          {t('diagram.none')}
+        </div>
+      )}
+      {ex.videoUrl && (
         <a href={ex.videoUrl} target="_blank" rel="noopener noreferrer" className={btnSecondary}>
           <PlayIcon width={18} height={18} /> {t('exercise.video')}
         </a>
-      ) : (
-        <div className="grid aspect-video place-items-center rounded-2xl border border-dashed border-slate-300 bg-[repeating-linear-gradient(90deg,#ecfdf5_0,#ecfdf5_40px,#d1fae5_40px,#d1fae5_80px)] text-sm text-emerald-900/70">
-          {t('exercise.noVideo')}
-        </div>
       )}
 
       <section className="space-y-2">
