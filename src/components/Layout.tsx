@@ -3,13 +3,16 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import LanguageToggle from './LanguageToggle'
 import { useAuth } from '../lib/auth'
+import { useExercises } from '../lib/exercises'
 import { BookIcon, HomeIcon, Logo, PlusIcon, UserIcon } from './icons'
 
 type NavItem = { to: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>>; end?: boolean }
 
 export default function Layout() {
   const { t } = useTranslation()
-  const { user, enabled } = useAuth()
+  const { user, enabled, isAdmin } = useAuth()
+  const { all } = useExercises()
+  const pendingCount = isAdmin ? all.filter((e) => e.status === 'pending').length : 0
   const items: NavItem[] = [
     { to: '/', label: t('nav.home'), Icon: HomeIcon, end: true },
     { to: '/plan', label: t('nav.newSession'), Icon: PlusIcon },
@@ -45,6 +48,15 @@ export default function Layout() {
 
           <div className="ml-auto flex items-center gap-2">
             <LanguageToggle />
+            {pendingCount > 0 && (
+              <Link
+                to="/review"
+                className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-200"
+              >
+                <span className="grid size-5 place-items-center rounded-full bg-amber-500 text-[11px] text-white">{pendingCount}</span>
+                <span className="hidden sm:inline">{t('review.toReview')}</span>
+              </Link>
+            )}
             {enabled && (
               <NavLink
                 to="/account"

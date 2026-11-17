@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ExerciseTags from '../components/ExerciseTags'
 import FieldDiagram from '../components/diagram/FieldDiagram'
-import { ChevronLeftIcon, PlayIcon, TrashIcon } from '../components/icons'
+import { CheckIcon, ChevronLeftIcon, PlayIcon, TrashIcon, XIcon } from '../components/icons'
 import { btnSecondary } from '../components/ui'
 import { useLang } from '../i18n'
 import { useAuth } from '../lib/auth'
@@ -14,7 +14,7 @@ export default function ExerciseDetail() {
   const { t } = useTranslation()
   const lang = useLang()
   const navigate = useNavigate()
-  const { byId, loading, remove } = useExercises()
+  const { byId, loading, remove, review } = useExercises()
   const { user, isAdmin } = useAuth()
   const ex = byId[id]
 
@@ -32,6 +32,17 @@ export default function ExerciseDetail() {
 
   const isOwner = Boolean(user && ex.createdBy === user.id)
   const canEdit = isAdmin || (isOwner && ex.status !== 'approved')
+
+  const onReview = async (status: 'approved' | 'rejected') => {
+    let note: string | undefined
+    if (status === 'rejected') {
+      const answer = prompt(t('review.rejectPrompt'))
+      if (answer === null) return
+      note = answer.trim() || undefined
+    }
+    const res = await review(ex.id, status, note)
+    if (res.error) alert(res.error)
+  }
 
   const onDelete = async () => {
     if (!confirm(t('exercise.deleteConfirm'))) return
@@ -57,6 +68,19 @@ export default function ExerciseDetail() {
           <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
             <span className="font-semibold">{t('exercise.reviewNote')}:</span> {ex.reviewNote}
           </p>
+        )}
+        {isAdmin && ex.status === 'pending' && (
+          <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <p className="text-sm font-medium text-amber-900">{t('review.pendingHere')}</p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => onReview('approved')} className={`${btnSecondary} !border-emerald-600 !text-emerald-800`}>
+                <CheckIcon width={18} height={18} /> {t('review.approve')}
+              </button>
+              <button type="button" onClick={() => onReview('rejected')} className={`${btnSecondary} !text-red-600`}>
+                <XIcon width={18} height={18} /> {t('review.reject')}
+              </button>
+            </div>
+          </div>
         )}
         {canEdit && (
           <div className="flex gap-2">

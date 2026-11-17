@@ -263,6 +263,8 @@ const en: Translation = {
     reject: 'Reject',
     rejectPrompt: 'Why is it rejected? (the author will see this)',
     forbidden: 'Only administrators can review exercises.',
+    toReview: 'To review',
+    pendingHere: 'This exercise is pending. As an administrator, you can approve or reject it.',
   },
 }
 
