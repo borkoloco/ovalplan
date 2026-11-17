@@ -261,6 +261,8 @@ const es = {
     reject: 'Rechazar',
     rejectPrompt: '¿Por qué se rechaza? (lo va a ver quien lo cargó)',
     forbidden: 'Sólo los administradores pueden revisar ejercicios.',
+    toReview: 'Para revisar',
+    pendingHere: 'Este ejercicio está pendiente. Como administrador, podés aprobarlo o rechazarlo.',
   },
 }
 
